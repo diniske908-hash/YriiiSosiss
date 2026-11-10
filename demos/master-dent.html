@@ -1,0 +1,1272 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Мастер-Дент — запись</title>
+<style>
+  :root{
+    --bg:#f2f5f9; --card:#ffffff; --txt:#111a24; --dim:#5f6b7a; --line:#e6ecf3;
+    --acc:#2f6bff; --acc2:#1ac2b6; --ok:#12b76a; --soft:#eef4ff; --danger:#e5484d;
+    --shadow:0 2px 10px rgba(17,26,36,.06);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--txt);
+       font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;display:flex;justify-content:center}
+  .app{width:100%;max-width:430px;min-height:100vh;display:flex;flex-direction:column;background:var(--bg);position:relative}
+
+  .topbar{background:var(--card);padding:10px 14px;display:flex;align-items:center;gap:12px;
+          position:sticky;top:0;z-index:6;border-bottom:1px solid var(--line)}
+  .topbar .x{font-size:20px;color:#8b97a3;line-height:1;cursor:pointer}
+  .topbar .title{flex:1;text-align:center;font-weight:600;font-size:15px;
+                 white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .topbar .dots{color:#8b97a3;font-size:18px;line-height:1;cursor:pointer;padding:0 2px}
+
+  .content{flex:1;overflow-y:auto;padding:14px 14px 250px}
+  .screen{animation:fade .22s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  .clinic{display:flex;gap:12px;align-items:center;margin-bottom:14px}
+  .logo{width:52px;height:52px;border-radius:16px;flex:none;display:flex;align-items:center;justify-content:center;
+        font-weight:800;font-size:20px;color:#fff;background:linear-gradient(135deg,#2f6bff,#1ac2b6)}
+  .clinic .nm{font-weight:700;font-size:17px;line-height:1.2}
+  .clinic .sub{font-size:12.5px;color:var(--dim);margin-top:3px}
+
+  .steps{display:flex;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:14px;
+         padding:12px 14px 0;margin-bottom:14px;box-shadow:var(--shadow);overflow-x:auto}
+  .step{position:relative;padding-bottom:11px;font-size:12.5px;color:var(--dim);white-space:nowrap;flex:none}
+  .step b{display:block;font-size:10.5px;color:#b9c4d0;margin-bottom:2px;font-weight:600}
+  .step.on{color:var(--txt);font-weight:600}
+  .step.on::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2.5px;border-radius:2px;
+                  background:linear-gradient(90deg,#2f6bff,#1ac2b6)}
+  .step.done b{color:var(--ok)}
+
+  .h2{font-size:12.5px;color:var(--dim);text-transform:uppercase;letter-spacing:.05em;margin:4px 0 10px;font-weight:600}
+
+  .row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);
+       border-radius:16px;padding:12px;margin-bottom:9px;box-shadow:var(--shadow);cursor:pointer;
+       transition:transform .12s ease,border-color .12s}
+  .row:active{transform:scale(.985)}
+  .row.sel{border-color:var(--acc);background:var(--soft)}
+  .ico{width:44px;height:44px;border-radius:13px;flex:none;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff}
+  .ico.a{background:linear-gradient(135deg,#2f6bff,#6ea8ff)}
+  .ico.b{background:linear-gradient(135deg,#1ac2b6,#6ee0d6)}
+  .ico.c{background:linear-gradient(135deg,#7b5cff,#b39dff)}
+  .ico.d{background:linear-gradient(135deg,#ff8a4c,#ffc08a)}
+  .row .txt{flex:1;min-width:0}
+  .row .t{font-weight:600;font-size:14.5px;line-height:1.25}
+  .row .s{font-size:12.5px;color:var(--dim);margin-top:3px}
+  .row .p{font-weight:700;font-size:14px;white-space:nowrap}
+  .chev{color:#c3ccd6;font-size:18px}
+
+  /* календарь */
+  .cal{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px 8px;box-shadow:var(--shadow);margin-bottom:10px}
+  .calhead{display:flex;align-items:center;justify-content:space-between;margin:0 2px 6px}
+  .calhead .m{font-weight:700;font-size:14.5px}
+  .nav{width:30px;height:30px;border-radius:9px;border:1px solid var(--line);background:#f7f9fc;color:var(--txt);
+       font-size:15px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .nav:disabled{opacity:.4;cursor:default}
+  .dow{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:10.5px;color:var(--dim);margin-bottom:2px}
+  .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px}
+  .day{height:37px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+       border-radius:9px;font-size:13px;cursor:pointer;color:var(--txt)}
+  .day:hover{background:#f2f6fc}
+  .day.off{color:#c9d3de;cursor:default}
+  .day.off:hover{background:transparent}
+  .day.today{box-shadow:inset 0 0 0 1.5px #cfe0ff}
+  .day.sel{background:linear-gradient(135deg,#2f6bff,#1ac2b6);color:#fff;font-weight:700}
+  .day .dot{width:5px;height:5px;border-radius:50%;background:var(--acc2);margin-top:3px}
+  .day.sel .dot{background:#fff}
+  .day.off .dot{background:#e3e9f1}
+
+  .times{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .time{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 0;text-align:center;
+        font-weight:600;font-size:14.5px;cursor:pointer;box-shadow:var(--shadow)}
+  .time.off{color:#c3ccd6;background:#f7f9fc;cursor:default;box-shadow:none}
+  .time.on{background:var(--acc);color:#fff;border-color:transparent}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;
+        box-shadow:var(--shadow);margin-bottom:12px}
+  .kv{display:flex;justify-content:space-between;gap:12px;font-size:14px;padding:5px 0}
+  .kv span{color:var(--dim)}
+  .kv b{text-align:right}
+  .hr{height:1px;background:var(--line);margin:8px 0}
+
+  label{display:block;font-size:12.5px;color:var(--dim);margin:10px 0 5px}
+  input,textarea{width:100%;background:#f7f9fc;border:1px solid var(--line);border-radius:12px;padding:12px;
+        font-size:15px;font-family:inherit;color:var(--txt);resize:none}
+  input:focus,textarea:focus{outline:none;border-color:var(--acc);background:#fff}
+  input.inp-err, .inp-err{border-color:#e5484d !important;background:#fff5f5 !important;box-shadow:0 0 0 3px rgba(229,72,77,.12) !important}
+  .err{color:var(--danger);font-size:12px;margin-top:6px;display:none}
+  .agree{display:flex;gap:8px;align-items:flex-start;font-size:11.5px;color:var(--dim);margin-top:12px}
+  .agree input{width:16px;height:16px;margin-top:1px}
+
+  .bottom{position:fixed;left:0;right:0;bottom:52px;max-width:430px;margin:0 auto;padding:10px 14px 10px;
+          background:linear-gradient(180deg,rgba(242,245,249,0),var(--bg) 30%)}
+  .cta{width:100%;border:0;border-radius:14px;padding:15px;font-size:16px;font-weight:700;font-family:inherit;
+       color:#fff;background:linear-gradient(135deg,#2f6bff,#1ac2b6);cursor:pointer;
+       box-shadow:0 6px 18px rgba(47,107,255,.28)}
+  .cta:disabled{background:#e7ecf2;color:#5b6773;box-shadow:none;cursor:default}
+  .ghost{width:100%;border:0;background:transparent;color:var(--dim);font-size:13px;padding:11px;font-family:inherit;cursor:pointer}
+
+  .okwrap{text-align:center;padding:22px 6px 6px}
+  .okcircle{width:86px;height:86px;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;
+            justify-content:center;background:rgba(18,183,106,.12);animation:pop .4s ease}
+  .okcircle span{width:62px;height:62px;border-radius:50%;background:var(--ok);color:#fff;font-size:30px;
+                 display:flex;align-items:center;justify-content:center}
+  @keyframes pop{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+  .oktitle{font-size:20px;font-weight:800}
+  .oktext{color:var(--dim);font-size:14px;margin-top:6px;line-height:1.45}
+
+  .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+  .actions button{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px;
+                  font-size:13px;font-family:inherit;color:var(--txt);cursor:pointer;box-shadow:var(--shadow)}
+
+  /* нижняя навигация */
+  .tabs{position:fixed;left:0;right:0;bottom:0;max-width:430px;margin:0 auto;display:grid;
+        grid-template-columns:repeat(3,1fr);background:var(--card);border-top:1px solid var(--line);z-index:7}
+  .tab{padding:9px 0 11px;text-align:center;font-size:11px;color:var(--dim);cursor:pointer;background:none;border:0;
+       font-family:inherit}
+  .tab.on{color:var(--acc);font-weight:600}
+  .tab svg{display:block;margin:0 auto 3px}
+
+  .note{font-size:11px;color:var(--dim);text-align:center;margin-top:16px}
+  .sheet{position:fixed;inset:0;background:rgba(10,18,28,.45);display:flex;align-items:flex-end;z-index:20}
+  .sheet .inner{background:var(--card);width:100%;max-width:430px;margin:0 auto;border-radius:18px 18px 0 0;
+                padding:14px 14px 22px;max-height:92vh;overflow-y:auto}
+  .sheet .item{padding:13px 8px;border-bottom:1px solid var(--line);font-size:15px;cursor:pointer}
+  .sheet .item:last-child{border:0}
+  .sheet input{width:100%;background:#f7f9fc;border:1px solid var(--line);border-radius:12px;padding:11px;
+               font-size:14px;font-family:inherit;color:var(--txt)}
+  .reason{background:#f7f9fc;border:1px solid var(--line);border-radius:12px;padding:11px 12px;
+          font-size:14px;font-family:inherit;text-align:left;cursor:pointer;color:var(--txt)}
+  .reason.on{border-color:var(--acc);background:var(--soft);font-weight:600}
+  .mapbtn{display:block;border:1px solid var(--line);background:#f7f9fc;border-radius:12px;padding:13px;
+          text-align:center;margin-bottom:8px;text-decoration:none;color:var(--txt);font-size:14px;font-weight:600}
+  .btn-outline{width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px;
+               font-size:14px;font-family:inherit;color:var(--txt);cursor:pointer;box-shadow:var(--shadow)}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+  .linkrow{display:flex;justify-content:center;align-items:center;gap:6px;margin-top:14px;flex-wrap:wrap}
+  .link{background:none;border:0;color:var(--dim);font-family:inherit;font-size:13px;
+        text-decoration:underline;text-underline-offset:2px;cursor:pointer;padding:6px 4px}
+  .link.danger{color:#e5484d}
+  .dotsep{color:#c3ccd6;font-size:12px}
+
+  /* строка быстрых действий как в приложениях записи */
+  .quickbar{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:10px}
+  .quick{display:flex;flex-direction:column;align-items:center;gap:4px;background:#f7f9fc;
+         border:1px solid var(--line);border-radius:12px;padding:9px 2px 8px;
+         font-size:9.5px;line-height:1.15;color:var(--txt);font-family:inherit;cursor:pointer;text-align:center}
+  .quick svg{color:#2f6bff}
+  .quick.danger svg{color:#e5484d}
+  .quick span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+  .map-open{cursor:pointer;color:var(--acc);text-decoration:none;font-size:12.5px}
+  .hint{font-size:12px;color:var(--dim);margin:-4px 0 10px}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="x" id="btnClose">✕</div>
+    <div class="title" id="topTitle">Мастер-Дент</div>
+    <div class="dots" id="btnMenu">⋮</div>
+  </div>
+  <div class="content" id="content"></div>
+  <div class="bottom" id="bottom"></div>
+  <div class="tabs" id="tabs"></div>
+</div>
+<div id="sheetHolder"></div>
+<script>
+const CLINIC = "Мастер-Дент";
+const PHONE = "+7 347 2651133;+7 917 4326989;+7 917 4954475";
+const ADDRESS = "Уфа, ул. Цюрупы, 86 (Советский р-н)";
+const HOURS = "ПН - ПТ: 09:00 - 20:00, СБ: 10:00 - 18:00, ВС: выходной";
+const PRICES = ["Лечение глубокого кариеса — 7 150 ₽", "Лечение среднего кариеса — 6 150 ₽", "Профессиональная гигиена полости рта — от 4 650 ₽", "Удаление зуба (анестезия + обработка + остановка кровотечения) — от 4 650 ₽", "Консультация и диагностика — бесплатно"];
+const SERVICES = ["Общая терапия", "Хирургия", "Ортопедия", "Детская стоматология", "Протезирование зубов", "Ортодонтия"];
+const FAQ = [{"q": "Сколько стоит консультация?", "a": "В рамках акции консультация и диагностика бесплатно."}, {"q": "Как записаться на приём?", "a": "Позвоните по телефону +7 (347) 212-07-73 или +7 (987) 254-54-74, либо оставьте заявку на сайте."}, {"q": "Работаете ли вы в выходные?", "a": "ПН-ПТ: 09:00-20:00, СБ: 10:00-18:00, ВС: выходной."}, {"q": "Есть ли детский стоматолог?", "a": "Да, в клинике есть детская стоматология и детские врачи."}];
+
+const MONTHS = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+const MONTHS_NOM = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const DOW = ['пн','вт','ср','чт','пт','сб','вс'];
+const ICON_CLASS = ['a','b','c','d'];
+
+const SVG = {
+  tooth: 'M12 3c3.2 0 5 2.1 5 5.2 0 3.9-1 5-1 7.9 0 2.9-1 4.9-2.1 4.9-1 0-1-2.9-1.9-2.9s-.9 2.9-1.9 2.9c-1.1 0-2.1-2-2.1-4.9 0-2.9-1-4-1-7.9C7 5.1 8.8 3 12 3z',
+  drop: 'M12 3.2s6 6.6 6 10.6a6 6 0 0 1-12 0c0-4 6-10.6 6-10.6z',
+  sparkle: 'M12 3.5l1.9 5.1 5.1 1.9-5.1 1.9L12 17.5l-1.9-5.1L5 10.5l5.1-1.9zM18.5 15l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z',
+  syringe: 'M4 20l5-5M9.5 14.5L18 6l3 3-8.5 8.5-3-3zM14 4l6 6',
+  shield: 'M12 3.5l7 2.8v5.6c0 3.9-3 7.2-7 8.6-4-1.4-7-4.7-7-8.6V6.3z',
+  person: 'M12 12.2a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8zM4.5 21c0-3.9 3.8-6 7.5-6s7.5 2.1 7.5 6',
+  clock: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7.5V12l3 1.8',
+  star: 'M12 3.6l2.6 5.5 6 .9-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6L3.4 10l6-.9z',
+  phone: 'M6.5 3.5l3 3-2 2.5c1 2.3 2.7 4 5 5l2.5-2 3 3-2 3c-4.5 0-12-7.5-12-12z',
+  chat: 'M4 5h16v11H8l-4 4z',
+  pin: 'M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z',
+  help: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9.8 9.2a2.3 2.3 0 1 1 3.4 2c-.8.5-1.2 1-1.2 2M12 17h.01',
+  calendar: 'M4 6.5h16v14H4zM4 10h16M8.5 3.5v4M15.5 3.5v4',
+  list: 'M4 6.5h16M4 12h16M4 17.5h16',
+  repeat: 'M4 9h12a3 3 0 0 1 0 6H9M4 9l3-3M4 9l3 3',
+  x: 'M6 6l12 12M18 6L6 18',
+  plus: 'M12 5v14M5 12h14',
+  bug: 'M9 5.5a3 3 0 0 1 6 0M12 6v3M7 9h10v5a5 5 0 0 1-10 0zM7 12H4M20 12h-3M6.5 17l-2 2M17.5 17l2 2'
+};
+
+
+// собираем контекст, чтобы по отчёту было понятно, что случилось
+const DIAG = { errors: [], lastAction: '' };
+window.addEventListener('error', (e) => {
+  DIAG.errors.push((e.message || '') + ' @ ' + (e.filename || '') + ':' + (e.lineno || 0));
+});
+function diagText(){
+  return [
+    'Экран: ' + (state.tab || '') + ' / шаг ' + state.step,
+    'Последнее действие: ' + (DIAG.lastAction || '—'),
+    'Ошибки JS: ' + (DIAG.errors.length ? DIAG.errors.slice(-3).join(' | ') : 'нет'),
+    'Браузер: ' + navigator.userAgent,
+    'Размер: ' + window.innerWidth + 'x' + window.innerHeight,
+    'Страница: ' + location.href,
+    'Время: ' + new Date().toLocaleString('ru-RU'),
+  ].join('\n');
+}
+
+const state = {
+  tab: 'book',
+  step: 1,
+  service: null,
+  date: null,
+  time: null,
+  name: '',
+  phone: '',
+  bookings: [],        // все записи пациента
+  activeId: null,      // только что оформленная (для экрана «готово»)
+  rescheduleId: null,  // какую запись переносим
+  reschedule: false,
+  monthOffset: 0
+};
+
+const STORE = 'demo_bookings_v4';
+
+function loadBookings(){
+  try {
+    const raw = JSON.parse(localStorage.getItem(STORE) || '[]');
+    return Array.isArray(raw) ? raw : [];
+  } catch (e) { return []; }
+}
+function saveBookings(){
+  try { localStorage.setItem(STORE, JSON.stringify(state.bookings)); } catch (e) { /* приватный режим */ }
+}
+function bDate(b){
+  const [y, m, d] = String(b && b.dateISO || '').split('-').map(Number);
+  return (y && m && d) ? new Date(y, m - 1, d) : null;
+}
+function activeBooking(){
+  if (state.activeId) {
+    const found = state.bookings.find(b => b.id === state.activeId);
+    if (found) return found;
+  }
+  return state.bookings.length ? state.bookings[state.bookings.length - 1] : null;
+}
+function sortBookings(){
+  state.bookings.sort((a, b) => (a.dateISO + a.time) < (b.dateISO + b.time) ? -1 : 1);
+}
+
+const $ = (id) => document.getElementById(id);
+const pad = (n) => String(n).padStart(2, '0');
+const iso = (d) => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+const today = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
+const humanDate = (d) => d.getDate() + ' ' + MONTHS[d.getMonth()];
+
+function priceFor(service){
+  const norm = (s) => String(s || '').toLowerCase().replace(/ё/g, 'е').replace(/[^a-zа-я0-9]/g, '');
+  const key = norm(service);
+  const prices = (PRICES || []).map(p => {
+    const idx = p.lastIndexOf('—');
+    return idx > 0 ? { name: p.slice(0, idx), price: p.slice(idx + 1).trim() } : null;
+  }).filter(Boolean);
+  if (!key) return '';
+  for (const p of prices){
+    const n = norm(p.name);
+    if (n.includes(key) || key.includes(n)) return p.price;
+  }
+  // если слова расходятся («профигиена» ↔ «профессиональная гигиена») — сверяем по корням слов
+  const stems = String(service).toLowerCase().split(/[^a-zа-я0-9]+/).filter(w => w.length >= 4)
+    .map(w => w.slice(0, 4));
+  let best = null, bestScore = 0;
+  for (const p of prices){
+    const n = norm(p.name);
+    const score = stems.filter(st => n.includes(st)).length;
+    if (score > bestScore){ bestScore = score; best = p; }
+  }
+  return bestScore >= 1 && best ? best.price : '';
+}
+function iconFor(service){
+  const s = String(service).toLowerCase();
+  if (/чистк|гигиен|отбел/.test(s)) return 'drop';
+  if (/имплант|укол|анестез|инъекц/.test(s)) return 'syringe';
+  if (/протез|коронк|брекет/.test(s)) return 'shield';
+  if (/консульт|прием|приём|осмотр/.test(s)) return 'person';
+  if (/удал|лечен|кариес/.test(s)) return 'tooth';
+  return 'star';
+}
+function durationFor(service){
+  const s = String(service).toLowerCase();
+  if (/имплант|протез|брекет/.test(s)) return '~90 мин';
+  if (/чистк|гигиен|лечен|удал/.test(s)) return '~60 мин';
+  if (/консульт|прием|приём|осмотр/.test(s)) return '~30 мин';
+  return '';
+}
+function svgIcon(name, size){
+  size = size || 22;
+  return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor"
+    stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="${SVG[name] || SVG.star}"/></svg>`;
+}
+function firstPhone(){
+  const p = String(PHONE || '').split(';').map(s => s.trim()).filter(Boolean)[0] || '';
+  return p;
+}
+function telLink(){
+  const d = String(firstPhone()).replace(/[^\d+]/g, '');
+  return d ? 'tel:' + d : '';
+}
+
+/* ---------- телефон: всегда российский формат +7 (999) 123-45-67 ---------- */
+function phoneDigits(raw){ return String(raw || '').replace(/\D/g, ''); }
+
+function formatPhone(raw){
+  let d = phoneDigits(raw);
+  if (d[0] === '8' || d[0] === '7') d = d.slice(1);
+  if (d[0] && d[0] !== '9') d = d;              // городские номера тоже пропускаем
+  d = d.slice(0, 10);
+  if (!d) return '';
+  let out = '+7 (' + d.slice(0, 3);
+  if (d.length >= 3) out += ')';
+  if (d.length > 3) out += ' ' + d.slice(3, 6);
+  if (d.length > 6) out += '-' + d.slice(6, 8);
+  if (d.length > 8) out += '-' + d.slice(8, 10);
+  return out;
+}
+
+function phoneValid(raw){
+  const d = phoneDigits(raw);
+  if (d.length === 11 && (d[0] === '7' || d[0] === '8')) return true;
+  if (d.length === 10) return true;
+  return false;
+}
+
+function attachPhoneMask(input){
+  if (!input) return;
+  const apply = () => {
+    const pos = input.value.length;
+    const before = input.value;
+    const next = formatPhone(before);
+    input.value = next;
+    if (pos < before.length) input.setSelectionRange(next.length, next.length);
+  };
+  input.addEventListener('input', (e) => {
+    if (e.inputType === 'deleteContentBackward') return;   // даём стирать по символу
+    apply();
+  });
+  input.addEventListener('blur', () => { input.value = formatPhone(input.value); });
+}
+function mapLinks(){
+  const q = encodeURIComponent(ADDRESS || (CLINIC + ', Уфа'));
+  return {
+    yandex: 'https://yandex.ru/maps/?text=' + q,
+    google: 'https://www.google.com/maps/search/?api=1&query=' + q,
+    gis: 'https://2gis.ru/ufa/search/' + q,
+    geo: 'geo:0,0?q=' + q
+  };
+}
+
+
+function showContact(){
+  $('sheetHolder').innerHTML = `<div class="sheet" id="contactSheet"><div class="inner">
+    <div style="font-weight:700;font-size:17px;margin:4px 4px 6px">Хочу такой же бот</div>
+    <div style="font-size:13.5px;color:var(--dim);margin:0 4px 14px;line-height:1.45">
+      Напишите любым способом — покажу, как это будет работать на вашем прайсе.
+    </div>
+    <a class="mapbtn" href="https://t.me/zinych_zapis_bot" target="_blank" rel="noopener">Написать в Telegram</a>
+    <a class="mapbtn" href="https://max.ru/id025805824348_bot" target="_blank" rel="noopener">Написать в MAX</a>
+    <a class="mapbtn" href="mailto:danzinowjev@yandex.ru?subject=Хочу такой же бот для клиники">Написать на почту</a>
+    <button class="cta" id="contactClose" style="margin-top:8px">Закрыть</button>
+  </div></div>`;
+  const sheet = $('contactSheet');
+  sheet.onclick = (e) => { if (e.target === sheet) sheet.remove(); };
+  $('contactClose').onclick = () => sheet.remove();
+}
+
+function showMap(){
+  const L = mapLinks();
+  $('sheetHolder').innerHTML = `<div class="sheet" id="mapSheet"><div class="inner">
+    <div style="font-weight:700;font-size:16px;margin:4px 4px 6px">Как добраться</div>
+    <div style="font-size:14px;color:var(--dim);margin:0 4px 12px">${ADDRESS || 'Адрес уточняется'}</div>
+    <a class="mapbtn" href="${L.yandex}" target="_blank" rel="noopener">Яндекс Карты</a>
+    <a class="mapbtn" href="${L.google}" target="_blank" rel="noopener">Google Maps</a>
+    <a class="mapbtn" href="${L.gis}" target="_blank" rel="noopener">2ГИС</a>
+    <a class="mapbtn" href="${L.geo}">Открыть в приложении на телефоне</a>
+    <div class="hint" style="text-align:center;margin:4px 0 10px">Адрес в демо выдуманный, но в Уфе</div>
+    <button class="cta" id="mapClose">Закрыть</button>
+  </div></div>`;
+  const sheet = $('mapSheet');
+  sheet.onclick = (e) => { if (e.target === sheet) sheet.remove(); };
+  $('mapClose').onclick = () => sheet.remove();
+}
+
+/* ---------- доступность: детерминированная, чтобы демо было предсказуемым ---------- */
+function hash(str){ let h = 0; for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0; return Math.abs(h); }
+function dayAvailable(d){
+  const t = today();
+  if (d < t) return false;
+  if (d.getDay() === 0) return false;               // воскресенье закрыто
+  const h = hash(iso(d) + (state.service || ''));
+  return h % 5 !== 0;                               // часть дней занята полностью
+}
+function slotsFor(d){
+  const all = ['09:00','10:30','12:00','13:30','15:00','16:30','18:00','19:30'];
+  const h = hash(iso(d) + (state.service || ''));
+  const day = iso(d);
+  return all.map((t, i) => {
+    const busy = (state.bookings || []).some(b => b.dateISO === day && b.time === t && !b.cancelled);
+    return { t, off: busy || (h >> i) % 4 === 0 };
+  });
+}
+function firstFreeDate(){
+  const d = new Date(today());
+  for (let i = 0; i < 45; i++){
+    const cur = new Date(d.getTime() + i * 86400000);
+    if (dayAvailable(cur)) return cur;
+  }
+  return d;
+}
+
+/* ---------- каркас ---------- */
+function stepsBar(){
+  const items = [['1','Услуга'],['2','Время'],['3','Готово']];
+  const current = state.step >= 4 ? 3 : state.step;   // 1, 2, 4 → 1, 2, 3
+  return '<div class="steps">' + items.map(([n, label], idx) => {
+    const i = idx + 1;
+    const cls = 'step' + (current === i ? ' on' : '') + (current > i ? ' done' : '');
+    return `<div class="${cls}"><b>${current > i ? '✓' : 'шаг ' + n}</b>${label}</div>`;
+  }).join('') + '</div>';
+}
+function clinicHead(){
+  const sub = [ADDRESS, HOURS].filter(Boolean).join(' · ') || 'онлайн-запись 24/7';
+  return `<div class="clinic">
+    <div class="logo">${(CLINIC[0] || 'К').toUpperCase()}</div>
+    <div><div class="nm">${CLINIC}</div><div class="sub">${sub}</div></div>
+  </div>`;
+}
+
+/* ---------- экраны ---------- */
+function screenServices(){
+  const list = (SERVICES && SERVICES.length ? SERVICES : ['Консультация']).slice(0, 10);
+  const rows = list.map((s, i) => {
+    const price = priceFor(s);
+    const dur = durationFor(s);
+    return `<div class="row" data-s="${encodeURIComponent(s)}">
+      <div class="ico ${ICON_CLASS[i % ICON_CLASS.length]}">${svgIcon(iconFor(s))}</div>
+      <div class="txt"><div class="t">${s}</div>${dur ? `<div class="s">${dur}</div>` : ''}</div>
+      <div class="p">${price || 'цену уточнит администратор'}</div>
+      <div class="chev">›</div>
+    </div>`;
+  }).join('');
+  return `<div class="screen">${stepsBar()}${clinicHead()}
+    <div class="h2">Выберите услугу</div>${rows}
+    <div class="note">Демо клиники «${CLINIC}» · сделано Зиныч IT. Заявки никуда не уходят.</div></div>`;
+}
+
+function screenCalendar(){
+  const base = new Date(today().getFullYear(), today().getMonth() + state.monthOffset, 1);
+  const y = base.getFullYear(), m = base.getMonth();
+  const firstDow = (new Date(y, m, 1).getDay() + 6) % 7;      // пн = 0
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const cells = [];
+  for (let i = 0; i < firstDow; i++) cells.push('<div></div>');
+  for (let d = 1; d <= daysInMonth; d++){
+    const date = new Date(y, m, d);
+    const avail = dayAvailable(date);
+    const isToday = iso(date) === iso(today());
+    const sel = state.date && iso(date) === iso(state.date);
+    const cls = 'day' + (avail ? '' : ' off') + (isToday ? ' today' : '') + (sel ? ' sel' : '');
+    cells.push(`<div class="${cls}" ${avail ? `data-d="${iso(date)}"` : ''}>
+      ${d}${avail ? '<i class="dot"></i>' : ''}</div>`);
+  }
+  const prevDisabled = state.monthOffset <= 0 ? 'disabled' : '';
+  const slots = state.date ? slotsFor(state.date).map(s =>
+      `<div class="time${s.off ? ' off' : (state.time === s.t ? ' on' : '')}" data-t="${s.t}">${s.t}</div>`).join('')
+    : '<div class="hint">Выберите день в календаре — покажем свободное время.</div>';
+  const chosen = state.service ? `<div class="hint" style="margin:0 2px 8px">
+      Услуга: <b style="color:var(--txt)">${state.service}</b>
+      ${priceFor(state.service) ? ' · ' + priceFor(state.service) : ''}</div>` : '';
+  return `<div class="screen">${stepsBar()}${chosen}
+    <div class="h2">Выберите дату</div>
+    <div class="cal">
+      <div class="calhead">
+        <button class="nav" id="prevMonth" ${prevDisabled}>‹</button>
+        <div class="m">${MONTHS_NOM[m]} ${y}</div>
+        <button class="nav" id="nextMonth">›</button>
+      </div>
+      <div class="dow">${DOW.map(x => `<div>${x}</div>`).join('')}</div>
+      <div class="grid" id="calGrid">${cells.join('')}</div>
+      <div class="hint" style="margin:10px 4px 0">● зелёная точка — есть свободное время. Воскресенье — выходной.</div>
+    </div>
+    <div class="h2">Свободное время${state.date ? ' · ' + humanDate(state.date) : ''}</div>
+    <div class="times">${slots}</div>
+    ${state.time ? `<div class="card" style="margin-top:14px">
+      <div style="font-weight:600;font-size:14px;margin-bottom:2px">Записаться на ${state.time}</div>
+      <input id="fName" placeholder="Как вас зовут" value="${state.name}" style="margin-top:10px">
+      <input id="fPhone" inputmode="tel" placeholder="+7 (999) 123-45-67" value="${state.phone}" style="margin-top:8px">
+      <div class="err" id="formErr">Введите имя и телефон полностью</div>
+      <div class="agree"><input type="checkbox" id="fAgree" checked>
+        <div>Согласен на обработку данных — администратор свяжется только по поводу записи.</div></div>
+    </div>` : ''}
+    <div class="note">Демо клиники «${CLINIC}» · сделано Зиныч IT. Заявки никуда не уходят.</div></div>`;
+}
+
+function screenForm(){
+  return `<div class="screen">${stepsBar()}
+    <div class="card">
+      <div class="kv"><span>Услуга</span><b>${state.service || '—'}</b></div>
+      <div class="kv"><span>Дата</span><b>${state.date ? humanDate(state.date) : '—'}</b></div>
+      <div class="kv"><span>Время</span><b>${state.time || '—'}</b></div>
+      <div class="hr"></div>
+      <div class="kv"><span>Цена</span><b>${priceFor(state.service) || 'уточнит администратор'}</b></div>
+    </div>
+    <div class="h2">Ваши данные</div>
+    <label>Как вас зовут</label>
+    <input id="fName" placeholder="Ирина" value="${state.name}">
+    <label>Телефон</label>
+    <input id="fPhone" inputmode="tel" placeholder="+7 (999) 123-45-67" value="${state.phone}">
+    <div class="hint" style="margin:6px 0 0">Российский номер — формат подставится сам</div>
+    <div class="err" id="formErr">Введите телефон полностью: +7 (999) 123-45-67</div>
+    <div class="agree"><input type="checkbox" id="fAgree" checked>
+      <div>Согласен на обработку данных — администратор свяжется только по поводу записи.</div></div>
+    <div class="note">Демо клиники «${CLINIC}» · сделано Зиныч IT.</div>
+  </div>`;
+}
+
+function screenDone(){
+  const b = activeBooking() || {};
+  const d = bDate(b) || state.date;
+  return `<div class="screen">
+    <div class="okwrap"><div class="okcircle"><span>✓</span></div>
+      <div class="oktitle">${state.reschedule ? 'Запись перенесена' : 'Вы записаны'}</div>
+      <div class="oktext">Администратор подтвердит запись — позвонит<br>или напишет в течение 15 минут.</div>
+    </div>
+    <div class="card">
+      <div class="kv"><span>Клиника</span><b>${CLINIC}</b></div>
+      <div class="kv"><span>Услуга</span><b>${b.service || state.service || '—'}</b></div>
+      <div class="kv"><span>Когда</span><b>${d ? humanDate(d) : ''}, ${b.time || state.time || ''}</b></div>
+      <div class="kv"><span>Адрес</span><b>${ADDRESS || '—'}</b></div>
+    </div>
+    <div style="margin-top:2px">
+      <button class="cta" id="actMap">📍 Как добраться</button>
+    </div>
+    <div class="row2">
+      <button class="btn-outline" id="actCal">📅 В календарь</button>
+      <button class="btn-outline" id="actMove">🔁 Перенести</button>
+    </div>
+    <button class="btn-outline" id="actAgain" style="margin-top:8px">➕ Записаться ещё</button>
+    <div class="linkrow">
+      <button class="link" id="actCall">Позвонить</button>
+      <span class="dotsep">·</span>
+      <button class="link danger" id="actCancel">Отменить запись</button>
+    </div>
+    <div class="card" style="margin-top:12px;background:#f3f8ff;border-color:#d9e7ff">
+      <div style="font-weight:700;font-size:14.5px;line-height:1.3">Такой же бот — вашей клинике</div>
+      <div style="font-size:12.5px;color:var(--dim);margin:5px 0 11px;line-height:1.45">
+        10 000 ₽, запуск 5–10 дней. Покажу, как это будет работать на вашем прайсе.
+      </div>
+      <button id="actBuy" class="btn-outline" style="border-color:#cfe0ff;color:#2f6bff;font-weight:600">
+        Хочу такой же →
+      </button>
+    </div>
+    <div class="note">Демо клиники «${CLINIC}» · сделано Зиныч IT. Заявки никуда не уходят.</div>
+  </div>`;
+}
+
+function screenMyBookings(){
+  const list = state.bookings;
+  if (!list.length){
+    return `<div class="screen"><div class="h2">Мои записи</div>
+      <div class="card"><div class="kv"><span>Пока пусто</span><b>—</b></div>
+      <div class="hint" style="margin:6px 0 0">Запишитесь — и здесь появятся все ваши визиты.</div></div>
+      <button class="cta" id="goBook">Записаться</button></div>`;
+  }
+  const cards = list.map((b, i) => {
+    const d = bDate(b);
+    return `<div class="card" data-bid="${b.id}" style="margin-bottom:10px">
+      <div class="kv"><span>Запись ${i + 1}</span><b style="color:#12b76a">подтверждена</b></div>
+      <div class="kv"><span>Услуга</span><b>${b.service}</b></div>
+      <div class="kv"><span>Когда</span><b>${d ? humanDate(d) : ''}, ${b.time}</b></div>
+      <div class="kv"><span>Адрес</span><b>${ADDRESS || '—'}</b></div>
+      <div class="quickbar">
+        <button class="quick" data-act="map" data-id="${b.id}">${svgIcon('pin', 20)}<span>Маршрут</span></button>
+        <button class="quick" data-act="ics" data-id="${b.id}">${svgIcon('calendar', 20)}<span>Календарь</span></button>
+        <button class="quick" data-act="move" data-id="${b.id}">${svgIcon('repeat', 20)}<span>Перенести</span></button>
+        <button class="quick" data-act="call" data-id="${b.id}">${svgIcon('phone', 20)}<span>Позвонить</span></button>
+        <button class="quick danger" data-act="cancel" data-id="${b.id}">${svgIcon('x', 20)}<span>Отменить</span></button>
+      </div>
+    </div>`;
+  }).join('');
+  return `<div class="screen"><div class="h2">Мои записи · ${list.length}</div>
+    ${cards}
+    <button class="cta" id="goBook2" style="margin-top:6px">➕ Записаться ещё</button></div>`;
+}
+
+function screenHelp(){
+  const rows = [
+    { t: 'Позвонить в клинику', s: firstPhone() || 'телефон не указан', icon: 'phone', id: 'helpCall' },
+    { t: 'Написать в клинику', s: 'сообщение увидит администратор', icon: 'chat', id: 'helpChat' },
+    { t: 'Как добраться', s: ADDRESS || 'откройте карту с клиникой', icon: 'pin', id: 'helpMap' },
+    { t: 'Режим работы', s: HOURS || 'уточните по телефону', icon: 'clock', id: 'helpHours' },
+    { t: 'Заказать звонок', s: 'оставьте номер — перезвоним', icon: 'phone', id: 'helpCallback' },
+    { t: 'Хочу такой бот', s: '10 000 ₽, запуск 5–10 дней', icon: 'star', id: 'helpBuy' },
+    { t: 'Нашли ошибку?', s: 'напишите сюда — я исправлю', icon: 'bug', id: 'helpBug' }
+  ].map(r => `<div class="row" id="${r.id}">
+      <div class="ico ${r.id === 'helpBug' ? 'd' : 'b'}">${svgIcon(r.icon)}</div>
+      <div class="txt"><div class="t">${r.t}</div><div class="s">${r.s}</div></div>
+      <div class="chev">›</div></div>`).join('');
+  const faq = (FAQ || []).map((f, i) => `<div class="card" style="margin-bottom:8px" data-faq="${i}">
+      <div class="kv"><span style="color:var(--txt)">${f.q}</span><b class="chev">⌄</b></div>
+      <div class="hint" style="display:none;margin:6px 0 0">${f.a}</div></div>`).join('');
+  return `<div class="screen"><div class="h2">Помощь</div>${rows}
+    <div class="h2" style="margin-top:16px">Частые вопросы</div>${faq || '<div class="hint" style="margin:0 0 10px">Вопросы уточняются.</div>'}
+    <div class="note">Демо клиники «${CLINIC}» · сделано Зиныч IT.</div></div>`;
+}
+
+function screenChat(){
+  return `<div class="screen">
+    <div class="h2">Написать в клинику</div>
+    <div class="hint">Администратор ответит в рабочее время${HOURS ? ' (' + HOURS + ')' : ''}.</div>
+    <div class="card">
+      <label>Ваше сообщение</label>
+      <textarea id="chatText" rows="5" placeholder="Здравствуйте! Уточните, пожалуйста, …"></textarea>
+      <label>Телефон для ответа</label>
+      <input id="chatPhone" inputmode="tel" placeholder="+7 (999) 123-45-67">
+      <div class="err" id="chatErr">Напишите сообщение и номер</div>
+    </div>
+    <button class="cta" id="chatSend">Отправить</button>
+  </div>`;
+}
+
+function screenCallback(){
+  return `<div class="screen">
+    <div class="h2">Заказать звонок</div>
+    <div class="hint">Перезвоним в рабочее время${HOURS ? ' (' + HOURS + ')' : ''}.</div>
+    <div class="card">
+      <label>Телефон</label>
+      <input id="cbPhone" inputmode="tel" placeholder="+7 (999) 123-45-67">
+      <label>Удобное время (необязательно)</label>
+      <input id="cbTime" placeholder="например, после 18:00">
+      <div class="err" id="cbErr">Укажите номер телефона</div>
+    </div>
+    <button class="cta" id="cbSend">Жду звонка</button>
+  </div>`;
+}
+
+function screenBug(){
+  return `<div class="screen">
+    <div class="h2">Нашли ошибку?</div>
+    <div class="hint">Если что-то не работает или выглядит странно — напишите. Сообщение уйдёт разработчику, это демо.</div>
+    <div class="card">
+      <label>Что случилось</label>
+      <textarea id="bugText" rows="4" placeholder="Например: нажимаю на дату, а время не появляется"></textarea>
+      <label>Как с вами связаться (необязательно)</label>
+      <input id="bugPhone" placeholder="Телефон или @telegram">
+      <div class="err" id="bugErr">Опишите, пожалуйста, что случилось</div>
+    </div>
+    <button class="cta" id="bugSend">Отправить разработчику</button>
+    <button class="btn-outline" id="bugToBot" style="margin-top:8px;border-color:#cfe0ff;color:#2f6bff">
+      💬 Написать в Telegram
+    </button>
+    <button class="btn-outline" id="bugToMax" style="margin-top:8px;border-color:#cfe0ff;color:#2f6bff">
+      💬 Написать в MAX
+    </button>
+    <div class="note" style="margin-top:6px">Если кнопка не открылась — найдите <b>@zinych_zapis_bot</b> в Telegram и напишите туда.</div>
+  </div>`;
+}
+
+function screenInfo(title, text){  return `<div class="screen"><div class="h2">${title}</div>
+    <div class="card"><div style="font-size:14.5px;line-height:1.55">${text}</div></div>
+    <button class="cta" id="backHelp">Назад</button></div>`;
+}
+
+function screenSent(title, text){
+  return `<div class="screen">
+    <div class="okwrap"><div class="okcircle"><span>✓</span></div>
+      <div class="oktitle">${title}</div><div class="oktext">${text}</div></div>
+    <button class="cta" id="backHelp" style="margin-top:8px">Понятно</button></div>`;
+}
+
+/* ---------- нижняя панель и табы ---------- */
+function renderTabs(){
+  const count = state.bookings.length;
+  const tabs = [
+    ['book', 'Запись', 'calendar'],
+    ['mine', count ? 'Записи · ' + count : 'Мои записи', 'list'],
+    ['help', 'Помощь', 'help']
+  ];
+  $('tabs').innerHTML = tabs.map(([id, label, icon]) =>
+    `<button class="tab${state.tab === id ? ' on' : ''}" data-tab="${id}">
+      ${svgIcon(icon, 20)}${label}</button>`).join('');
+  $('tabs').querySelectorAll('.tab').forEach(el => {
+    el.onclick = () => { state.tab = el.dataset.tab; if (state.tab === 'book') state.step = 1; render(); };
+  });
+}
+
+function renderBottom(){
+  const b = $('bottom');
+  const show = state.tab === 'book';
+  b.style.display = show ? 'block' : 'none';
+  if (!show) return;
+  if (state.step === 1){
+    b.innerHTML = `<button class="cta" disabled>Выберите услугу выше</button>`;
+  } else if (state.step === 2){
+    b.innerHTML = `<button class="cta" ${state.time ? '' : 'disabled'}>${state.time ? 'Записаться' : 'Выберите время'}</button>
+      <button class="ghost" id="noTime">Нет удобного времени — заказать звонок</button>`;
+    b.querySelector('.cta').onclick = () => { if (state.time) submitInline(); };
+    b.querySelector('#noTime').onclick = () => { state.tab = 'help'; render(); showCallback(); };
+  } else if (state.step === 3){
+    b.innerHTML = `<button class="cta">${state.reschedule ? 'Перенести запись' : 'Записаться'}</button>`;
+    b.querySelector('.cta').onclick = submitForm;
+  } else {
+    // на экране «вы записаны» главная кнопка уже есть в самом экране,
+    // поэтому нижнюю панель убираем, чтобы не спорить с ней
+    b.innerHTML = '';
+    b.style.display = 'none';
+  }
+}
+
+/* ---------- действия ---------- */
+function submitForm(){
+  const name = ($('fName') || {}).value || '';
+  const phone = ($('fPhone') || {}).value || '';
+  if (!phoneValid(phone)){
+    state.name = name; state.phone = phone;
+    const err = $('formErr');
+    if (err){ err.textContent = 'Введите телефон полностью: +7 (999) 123-45-67'; err.style.display = 'block'; }
+    return;
+  }
+  if (name.trim().length < 2){
+    state.name = name; state.phone = phone;
+    const err = $('formErr');
+    if (err){ err.textContent = 'Как вас зовут?'; err.style.display = 'block'; }
+    return;
+  }
+  state.name = name.trim();
+  state.phone = phone.trim();
+  if (state.rescheduleId){
+    const target = state.bookings.find(b => b.id === state.rescheduleId);
+    if (target){
+      target.service = state.service;
+      target.dateISO = iso(state.date);
+      target.time = state.time;
+      state.activeId = target.id;
+    }
+  } else {
+    const item = {
+      id: String(Date.now()),
+      service: state.service,
+      dateISO: iso(state.date),
+      time: state.time,
+      created: new Date().toISOString()
+    };
+    state.bookings.push(item);
+    state.activeId = item.id;
+    state.reschedule = false;
+  }
+  sortBookings();
+  saveBookings();
+  state.rescheduleId = null;
+  state.step = 4;
+  render();
+}
+
+
+function submitInline(){
+  const n = ($('fName') || {}).value || '';
+  const ph = ($('fPhone') || {}).value || '';
+  const agree = $('fAgree');
+  const nameEl = $('fName'), phoneEl = $('fPhone');
+  let firstBad = null;
+  const mark = (el, bad) => {
+    if (!el) return;
+    el.classList.toggle('inp-err', bad);
+    if (bad && !firstBad) firstBad = el;
+  };
+  const nameBad = n.trim().length < 2;
+  const phoneBad = !phoneValid(ph);
+  const agreeBad = !!(agree && !agree.checked);
+  mark(nameEl, nameBad);
+  mark(phoneEl, phoneBad);
+
+  if (nameBad || phoneBad || agreeBad){
+    const err = $('formErr');
+    if (err){
+      err.textContent = nameBad
+        ? 'Напишите, как вас зовут'
+        : (phoneBad ? 'Введите телефон полностью: +7 (999) 123-45-67'
+                   : 'Отметьте согласие на обработку данных');
+      err.style.display = 'block';
+    }
+    const target = firstBad || (agreeBad ? agree : err);
+    if (target){
+      try { target.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {}
+      try { target.focus({ preventScroll: true }); } catch (e) {}
+    }
+    return;
+  }
+  state.name = n.trim(); state.phone = ph.trim();
+  if (state.rescheduleId){
+    const t = state.bookings.find(b => b.id === state.rescheduleId);
+    if (t){ t.service = state.service; t.dateISO = iso(state.date); t.time = state.time; state.activeId = t.id; }
+  } else {
+    const item = { id: String(Date.now()), service: state.service, dateISO: iso(state.date),
+                   time: state.time, created: new Date().toISOString() };
+    state.bookings.push(item);
+    state.activeId = item.id;
+    state.reschedule = false;
+  }
+  sortBookings(); saveBookings();
+  state.rescheduleId = null;
+  state.step = 4;
+  render();
+}
+
+function callClinic(){
+  const link = telLink();
+  if (link){
+    toast('Звоним: ' + firstPhone());
+    location.href = link;
+  } else {
+    toast('Телефон в демо не указан — откройте «Помощь»');
+    state.tab = 'help'; render();
+  }
+}
+
+function buildIcs(booking){
+  const b = booking || activeBooking() || { service: state.service, dateISO: state.date ? iso(state.date) : '', time: state.time };
+  const d = bDate(b) || state.date;
+  if (!d || !b.time) return '';
+  const esc = (s) => String(s || '').replace(/\\/g, '\\\\').replace(/;/g, '\\;')
+                                   .replace(/,/g, '\\,').replace(/\n/g, '\\n');
+  const [hh, mm] = b.time.split(':').map(Number);
+  const start = new Date(d.getFullYear(), d.getMonth(), d.getDate(), hh, mm);
+  const mins = parseInt(String(durationFor(b.service)).replace(/\D/g, ''), 10) || 60;
+  const end = new Date(start.getTime() + mins * 60000);
+  const local = (x) => x.getFullYear() + pad(x.getMonth() + 1) + pad(x.getDate()) +
+                       'T' + pad(x.getHours()) + pad(x.getMinutes()) + '00';
+  const utc = (x) => x.getUTCFullYear() + pad(x.getUTCMonth() + 1) + pad(x.getUTCDate()) +
+                     'T' + pad(x.getUTCHours()) + pad(x.getUTCMinutes()) + pad(x.getUTCSeconds()) + 'Z';
+  return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//ufa-zapis//demo//RU','CALSCALE:GREGORIAN',
+    'BEGIN:VEVENT',
+    'UID:' + start.getTime() + '-demo@ufa-zapis',
+    'DTSTAMP:' + utc(new Date()),
+    'DTSTART:' + local(start),
+    'DTEND:' + local(end),
+    'SUMMARY:' + esc(CLINIC + ' — ' + (b.service || 'приём')),
+    'DESCRIPTION:' + esc('Запись через бота. Демо, заявка никуда не уходит.'),
+    'LOCATION:' + esc(ADDRESS || 'Уфа'),
+    'END:VEVENT','END:VCALENDAR'].join('\r\n') + '\r\n';
+}
+
+function downloadIcs(booking){
+  const b = booking || activeBooking();
+  const ics = buildIcs(b);
+  if (!ics){ toast('Сначала выберите время'); return false; }
+  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'zapis-' + (b && b.dateISO ? b.dateISO : iso(state.date)) + '.ics';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+  return true;
+}
+
+function cancelBooking(id){
+  askCancel(id);
+}
+
+const CANCEL_REASONS = [
+  'Передумал(а)',
+  'Не подходит время',
+  'Выбрал(а) другую клинику',
+  'Не дозвонился(ась), нет ответа',
+  'Записался(ась) по ошибке',
+  'Другое'
+];
+
+function askCancel(id){
+  const booking = state.bookings.find(b => b.id === id) ||
+                  (id ? null : activeBooking());
+  if (!booking) return;
+  const d = bDate(booking);
+  let reason = '';
+
+  $('sheetHolder').innerHTML = `<div class="sheet" id="cancelSheet"><div class="inner">
+    <div style="font-weight:700;font-size:17px;margin:4px 4px 4px">Отменить запись?</div>
+    <div class="hint" style="margin:0 4px 12px">${booking.service}${d ? ' · ' + humanDate(d) : ''}, ${booking.time}</div>
+    <div style="font-size:12.5px;color:var(--dim);margin:0 4px 8px">Укажите причину — администратору это помогает</div>
+    <div id="reasonList" style="display:grid;gap:6px;margin:0 2px 10px">
+      ${CANCEL_REASONS.map((r, i) => `<button class="reason" data-r="${i}">${r}</button>`).join('')}
+    </div>
+    <input id="reasonText" placeholder="Напишите причину (необязательно)" style="display:none;margin:0 2px 10px">
+    <div style="display:flex;gap:8px;margin:6px 2px 10px">
+      <button id="keepBtn" style="flex:1;background:#f2f5f9;border:1px solid var(--line);border-radius:12px;
+              padding:13px;font-size:14px;font-family:inherit;cursor:pointer">Не отменять</button>
+      <button id="cancelOk" disabled style="flex:1;background:#e5484d;color:#fff;border:0;border-radius:12px;
+              padding:13px;font-size:14px;font-family:inherit;font-weight:600;cursor:default;opacity:.5">Отменить запись</button>
+    </div>
+  </div></div>`;
+
+  const sheet = $('cancelSheet');
+  const ok = $('cancelOk');
+  const note = $('reasonText');
+
+  sheet.querySelectorAll('.reason').forEach(btn => {
+    btn.onclick = () => {
+      sheet.querySelectorAll('.reason').forEach(x => x.classList.remove('on'));
+      btn.classList.add('on');
+      reason = CANCEL_REASONS[Number(btn.dataset.r)];
+      note.style.display = reason === 'Другое' ? 'block' : 'none';
+      ok.disabled = false;
+      ok.style.opacity = '1';
+      ok.style.cursor = 'pointer';
+    };
+  });
+
+  $('keepBtn').onclick = () => sheet.remove();
+  ok.onclick = () => {
+    if (!reason) return;
+    const comment = (note.value || '').trim();
+    sheet.remove();
+    doCancel(booking.id, reason, comment);
+  };
+}
+
+function doCancel(id, reason, comment){
+  const booking = state.bookings.find(b => b.id === id);
+  if (!booking) return;
+  state.bookings = state.bookings.filter(b => b.id !== id);
+  saveBookings();
+  try {
+    const list = JSON.parse(localStorage.getItem('demo_cancels') || '[]');
+    list.push({ id, service: booking.service, dateISO: booking.dateISO, time: booking.time,
+                reason, comment, at: new Date().toISOString() });
+    localStorage.setItem('demo_cancels', JSON.stringify(list));
+  } catch (e) { /* приватный режим */ }
+  if (state.activeId === id) state.activeId = null;
+  state.time = null;
+  state.date = null;
+  state.reschedule = false;
+  state.rescheduleId = null;
+  state.step = 1;
+  render();
+  infoSheet('Запись отменена',
+    'Причина: <b>' + reason + '</b>' + (comment ? '<br>Комментарий: ' + comment : '') +
+    '<br><br>Осталось записей: ' + state.bookings.length + '. Записаться снова можно в любой момент.',
+    'Понятно');
+}
+
+function startReschedule(id){
+  const booking = state.bookings.find(b => b.id === id) ||
+                  (id ? null : activeBooking());
+  if (!booking) return;
+  state.rescheduleId = booking.id;
+  state.service = booking.service;
+  state.date = bDate(booking);
+  const now = today();
+  state.monthOffset = Math.max(0,
+    (state.date.getFullYear() - now.getFullYear()) * 12 + (state.date.getMonth() - now.getMonth()));
+  state.time = null;
+  state.reschedule = true;
+  state.step = 2;
+  state.tab = 'book';
+  render();
+  toast('Выберите новое время — старая запись заменится');
+}
+
+let toastEl = null;
+function toast(text){
+  if (toastEl) toastEl.remove();
+  const d = document.createElement('div');
+  d.textContent = text;
+  d.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:118px;max-width:400px;' +
+    'background:#111a24;color:#fff;font-size:13px;padding:11px 14px;border-radius:12px;z-index:30;text-align:center';
+  document.body.appendChild(d);
+  toastEl = d;
+  setTimeout(() => { d.remove(); if (toastEl === d) toastEl = null; }, 2600);
+}
+
+function infoSheet(title, text, buttonLabel){
+  $('sheetHolder').innerHTML = `<div class="sheet" id="sheet"><div class="inner">
+    <div style="font-weight:700;font-size:16px;margin:6px 4px 8px">${title}</div>
+    <div style="font-size:14px;line-height:1.5;color:var(--dim);margin:0 4px 14px">${text}</div>
+    <button class="cta" id="infoOk">${buttonLabel || 'Понятно'}</button>
+    <div style="height:10px"></div></div></div>`;
+  const sheet = $('sheet');
+  sheet.onclick = (e) => { if (e.target === sheet) sheet.remove(); };
+  $('infoOk').onclick = () => sheet.remove();
+}
+
+function showSheet(items){
+  $('sheetHolder').innerHTML = `<div class="sheet" id="sheet"><div class="inner">
+    ${items.map((it, i) => `<div class="item" data-i="${i}">${it.label}</div>`).join('')}
+    <div class="item" data-close="1" style="color:var(--dim)">Закрыть</div></div></div>`;
+  const sheet = $('sheet');
+  sheet.onclick = (e) => { if (e.target === sheet) sheet.remove(); };
+  sheet.querySelectorAll('.item').forEach(el => {
+    el.onclick = () => {
+      if (el.dataset.close) { sheet.remove(); return; }
+      const item = items[Number(el.dataset.i)];
+      sheet.remove();
+      item.action();
+    };
+  });
+}
+
+function showChat(){ state.tab = 'help'; render(); }
+function showCallback(){
+  const c = $('content');
+  c.innerHTML = screenCallback();
+  attachPhoneMask($('cbPhone'));
+  $('cbSend').onclick = () => {
+    const v = ($('cbPhone') || {}).value || '';
+    if (!phoneValid(v)){
+      const err = $('cbErr'); err.textContent = 'Введите телефон полностью: +7 (999) 123-45-67';
+      err.style.display = 'block'; return;
+    }
+    c.innerHTML = screenSent('Заявка принята', 'Администратор клиники «' + CLINIC + '» перезвонит на ' + v + '.');
+    $('backHelp').onclick = () => { state.tab = 'help'; render(); };
+  };
+}
+
+/* ---------- рендер ---------- */
+function render(){
+  renderTabs();
+  const c = $('content');
+  if (state.tab === 'mine'){
+    c.innerHTML = screenMyBookings();
+    if (!state.bookings.length){
+      $('goBook').onclick = () => { state.tab = 'book'; state.step = 1; render(); };
+    } else {
+      $('goBook2').onclick = () => { state.tab = 'book'; state.step = 1; render(); };
+      c.querySelectorAll('[data-act]').forEach(btn => {
+        const id = btn.dataset.id;
+        const act = btn.dataset.act;
+        btn.onclick = () => {
+          if (act === 'move') startReschedule(id);
+          if (act === 'cancel') askCancel(id);
+          if (act === 'call') callClinic();
+          if (act === 'map') showMap();
+          if (act === 'ics'){
+            const b = state.bookings.find(x => x.id === id);
+            if (downloadIcs(b)) infoSheet('Что скачалось',
+              'Это файл <b>.ics</b> — телефон откроет его и добавит визит: ' +
+              humanDate(bDate(b)) + ', ' + b.time + ', клиника «' + CLINIC + '».');
+          }
+        };
+      });
+      c.querySelectorAll('.map-open').forEach(el => { el.onclick = (e) => { e.preventDefault(); showMap(); }; });
+    }
+    renderBottom();
+    return;
+  }
+  if (state.tab === 'help'){
+    c.innerHTML = screenHelp();
+    $('helpCall').onclick = callClinic;
+    $('helpChat').onclick = () => {
+      c.innerHTML = screenChat();
+      attachPhoneMask($('chatPhone'));
+      $('chatSend').onclick = () => {
+        const t = ($('chatText') || {}).value || '';
+        const p = ($('chatPhone') || {}).value || '';
+        if (t.trim().length < 3){ $('chatErr').textContent = 'Напишите сообщение'; $('chatErr').style.display = 'block'; return; }
+        if (!phoneValid(p)){ $('chatErr').textContent = 'Введите телефон полностью: +7 (999) 123-45-67'; $('chatErr').style.display = 'block'; return; }
+        c.innerHTML = screenSent('Сообщение отправлено', 'Администратор клиники «' + CLINIC + '» ответит вам в рабочее время.');
+        $('backHelp').onclick = () => { state.tab = 'help'; render(); };
+      };
+    };
+    $('helpMap').onclick = showMap;
+    $('helpHours').onclick = () => {
+      c.innerHTML = screenInfo('Режим работы', HOURS || 'Режим работы уточните по телефону: ' + (firstPhone() || '—'));
+      $('backHelp').onclick = () => { state.tab = 'help'; render(); };
+    };
+    $('helpCallback').onclick = showCallback;
+    $('helpBuy').onclick = showContact;
+    $('helpBug').onclick = showBug;
+    c.querySelectorAll('[data-faq]').forEach(el => {
+      el.onclick = () => {
+        const body = el.querySelector('.hint');
+        body.style.display = body.style.display === 'none' ? 'block' : 'none';
+      };
+    });
+    renderBottom();
+    return;
+  }
+
+  const map = {1: screenServices, 2: screenCalendar, 3: screenForm, 4: screenDone};
+  c.innerHTML = map[state.step]();
+  if (window.__lastStep !== state.step) { c.scrollTop = 0; window.__lastStep = state.step; }
+
+  if (state.step === 1){
+    c.querySelectorAll('.row').forEach(el => {
+      el.onclick = () => {
+        state.service = decodeURIComponent(el.dataset.s);
+        state.date = firstFreeDate();
+        state.time = null;
+        state.step = 2;
+        render();
+      };
+    });
+  }
+  if (state.step === 2){
+    $('prevMonth').onclick = () => { if (state.monthOffset > 0) { state.monthOffset--; render(); } };
+    $('nextMonth').onclick = () => { state.monthOffset++; render(); };
+    c.querySelectorAll('.day[data-d]').forEach(el => {
+      el.onclick = () => {
+        const [y, m, d] = el.dataset.d.split('-').map(Number);
+        state.date = new Date(y, m - 1, d);
+        state.time = null;
+        render();
+      };
+    });
+    c.querySelectorAll('.time').forEach(el => {
+      if (el.classList.contains('off')) return;
+      el.onclick = () => {
+        DIAG.lastAction = 'выбор времени ' + el.dataset.t;
+        state.time = el.dataset.t;
+        render();
+        const f = document.getElementById('fName');
+        if (f) setTimeout(() => { try { f.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {} }, 60);
+      };
+    });
+    const nEl = $('fName'), pEl = $('fPhone');
+    if (nEl) nEl.oninput = () => { state.name = nEl.value; if (nEl.value.trim().length > 1) nEl.classList.remove('inp-err'); };
+    if (pEl){ attachPhoneMask(pEl); pEl.oninput = () => { state.phone = pEl.value; if (phoneValid(pEl.value)) pEl.classList.remove('inp-err'); }; }
+    const aEl = $('fAgree');
+    if (aEl) aEl.onchange = () => { const e = $('formErr'); if (e && aEl.checked) e.style.display = 'none'; };
+  }
+  if (state.step === 3){
+    const n = $('fName'), p = $('fPhone');
+    if (n) n.oninput = () => state.name = n.value;
+    if (p){ attachPhoneMask(p); p.oninput = () => state.phone = p.value; }
+  }
+  if (state.step === 4){
+    const ab = activeBooking() || {};
+    $('actCal').onclick = () => {
+      if (!downloadIcs(ab)) return;
+      infoSheet('Что скачалось',
+        'Это файл <b>.ics</b> — обычный календарный файл. Телефон откроет его и добавит визит: ' +
+        ((bDate(ab) ? humanDate(bDate(ab)) + ', ' : '') + (ab.time || '')) + ', клиника «' + CLINIC + '».' +
+        '<br><br>Он лежит в папке «Загрузки». В рабочем боте эту кнопку можно сделать ссылкой — ' +
+        'тогда календарь откроется сразу, без файла.');
+    };
+    $('actMap').onclick = showMap;
+    $('actMove').onclick = () => startReschedule(ab.id);
+    $('actCall').onclick = callClinic;
+    $('actCancel').onclick = () => askCancel(ab.id);
+    $('actAgain').onclick = () => { state.tab = 'book'; state.step = 1; state.reschedule = false; render(); };
+    $('actBuy').onclick = showContact;
+    c.querySelectorAll('.map-open').forEach(el => { el.onclick = (e) => { e.preventDefault(); showMap(); }; });
+  }
+  renderBottom();
+}
+
+$('btnClose').onclick = () => { state.tab = 'book'; state.step = 1; state.reschedule = false; render(); toast('Демо. В реальном боте здесь закрытие мини-приложения.'); };
+$('btnMenu').onclick = () => showSheet([
+  { label: '🆘 Помощь и контакты', action: () => { state.tab = 'help'; render(); } },
+  { label: '📋 Мои записи', action: () => { state.tab = 'mine'; render(); } },
+  { label: '📅 Записаться', action: () => { state.tab = 'book'; state.step = 1; render(); } },
+  { label: '📞 Позвонить в клинику', action: callClinic },
+  { label: '✍️ Хочу такой бот — 10 000 ₽', action: () => showContact() },
+  { label: '🐞 Нашли ошибку? Написать разработчику', action: () => { state.tab = 'help'; render(); showBug(); } }
+]);
+
+function showBug(){
+  const c = $('content');
+  c.innerHTML = screenBug();
+  $('bugSend').onclick = () => {
+    const txt = ($('bugText') || {}).value || '';
+    if (txt.trim().length < 5){ $('bugErr').style.display = 'block'; return; }
+    const contact = ($('bugPhone') || {}).value || '';
+    try {
+      const list = JSON.parse(localStorage.getItem('demo_bugs') || '[]');
+      list.push({ text: txt.trim(), contact, clinic: CLINIC, at: new Date().toISOString() });
+      localStorage.setItem('demo_bugs', JSON.stringify(list));
+    } catch (e) { /* приватный режим */ }
+    try {
+      const subj = encodeURIComponent('Ошибка в демо «' + CLINIC + '»');
+      const body = encodeURIComponent(
+        txt.trim() + (contact ? '\n\nСвязаться: ' + contact : '') +
+        '\n\n--- диагностика ---\n' + (typeof diagText === 'function' ? diagText() : location.href)
+      );
+      window.open('mailto:danzinowjev@yandex.ru?subject=' + subj + '&body=' + body, '_blank');
+    } catch (e) { /* не открылось — не страшно */ }
+    c.innerHTML = screenSent('Спасибо! Сообщение ушло',
+      'Открылось письмо разработчику — нажмите «Отправить». Или напишите в боте.');
+    $('backHelp').onclick = () => { state.tab = 'help'; render(); };
+  };
+
+  $('bugToMax').onclick = () => window.open('https://max.ru/id025805824348_bot', '_blank');
+
+  // кнопка «написать в боте» — раньше у неё не было обработчика
+  $('bugToBot').onclick = () => {
+    const web = 'https://t.me/zinych_zapis_bot?start=bug';
+    const deep = 'tg://resolve?domain=zinych_zapis_bot&start=bug';
+    try {
+      if (/Telegram/i.test(navigator.userAgent || '')) window.location.href = deep;
+      else window.open(web, '_blank');
+    } catch (e) { window.open(web, '_blank'); }
+    c.innerHTML = screenSent('Открываю бота',
+      'Если не открылось — найдите @zinych_zapis_bot в Telegram и напишите туда.');
+    $('backHelp').onclick = () => { state.tab = 'help'; render(); };
+  };
+}
+
+/* быстрые ссылки для показа: #time #form #done #help #mine */
+state.bookings = loadBookings();
+
+const h = location.hash.replace('#','');
+if (h){
+  state.service = (SERVICES && SERVICES[0]) || 'Консультация';
+  state.date = firstFreeDate();
+  if (h === 'time') state.step = 2;
+  if (h === 'form'){ state.step = 3; state.time = '10:30'; }
+  if (h === 'done'){
+    state.step = 4; state.time = '10:30'; state.name = 'Ирина';
+    const item = { id: 'demo-' + Date.now(), service: state.service, dateISO: iso(state.date), time: '10:30' };
+    if (!state.bookings.some(b => b.dateISO === item.dateISO && b.time === item.time && b.service === item.service)){
+      state.bookings.push(item);
+    }
+    state.activeId = item.id;
+  }
+  if (h === 'help') state.tab = 'help';
+  if (h === 'bug'){ state.tab = 'help'; }
+  if (h === 'mine'){
+    state.tab = 'mine';
+    if (!state.bookings.length){
+      const a = { id: 'demo-a', service: state.service, dateISO: iso(state.date), time: '10:30' };
+      const nextDay = new Date(state.date.getTime() + 86400000);
+      const b = { id: 'demo-b', service: 'Профгигиена', dateISO: iso(nextDay), time: '12:00' };
+      state.bookings.push(a, b);
+      state.activeId = a.id;
+    }
+  }
+}
+render();
+
+// небольшой отладочный доступ — чтобы автотест мог проверить расчёты
+window.__demo = {
+  version: 5,
+  get state(){ return state; },
+  get address(){ return ADDRESS; },
+  buildIcs, telLink, dayAvailable, firstPhone, formatPhone, phoneValid, mapLinks
+};
+
+if (h === 'bug') showBug();
+</script>
+</body>
+</html>

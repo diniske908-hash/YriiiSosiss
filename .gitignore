@@ -1,0 +1,20 @@
+__pycache__/
+*.py[cod]
+*.log
+
+# секреты и данные клиентов
+_*.json
+_*.jsonl
+_mail_seen.json
+wa_bridge/_session/
+wa_bridge/node_modules/
+wa_bridge/package-lock.json
+
+# служебное
+_logs/
+_shots/
+_run/
+_chrome_profile/
+site/
+*.zip
+.env

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>32 карата — запись</title>
+<style>
+  :root{--bg:#0e1621;--panel:#17212b;--in:#182533;--out:#2b5278;--txt:#e9edf1;--dim:#7d8b99;--acc:#4ea4f6}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;display:flex;justify-content:center}
+  .phone{width:100%;max-width:430px;min-height:100vh;display:flex;flex-direction:column;background:var(--bg)}
+  header{background:var(--panel);padding:12px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0}
+  .ava{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#4ea4f6,#7b5cff);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px}
+  .name{font-weight:600;font-size:15px}
+  .sub{font-size:12px;color:var(--acc)}
+  .chat{flex:1;padding:14px 12px;display:flex;flex-direction:column;gap:8px;overflow-y:auto}
+  .msg{max-width:82%;padding:9px 12px;border-radius:14px;font-size:14px;line-height:1.35;white-space:pre-wrap}
+  .in{background:var(--in);border-bottom-left-radius:4px;align-self:flex-start}
+  .out{background:var(--out);border-bottom-right-radius:4px;align-self:flex-end}
+  .btns{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+  button{background:#232f3d;color:var(--txt);border:1px solid #2f3f52;border-radius:10px;padding:10px 12px;font-size:14px;text-align:left;cursor:pointer}
+  button:hover{background:#2a3a4c}
+  .hint{font-size:11px;color:var(--dim);text-align:center;padding:8px}
+  footer{padding:8px 12px;background:var(--panel);display:flex;gap:8px}
+  footer input{flex:1;background:#232f3d;border:1px solid #2f3f52;border-radius:10px;padding:10px;color:var(--txt);font-size:14px}
+  footer .send{background:var(--acc);color:#04121f;font-weight:600;border:0;border-radius:10px;padding:0 14px;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="phone">
+  <header>
+    <div class="ava">3</div>
+    <div>
+      <div class="name">32 карата</div>
+      <div class="sub">бот · онлайн</div>
+    </div>
+  </header>
+  <div class="chat" id="chat"></div>
+  <div class="hint">демо для «32 карата» · </div>
+  <footer>
+    <input id="txt" placeholder="Сообщение…" onkeydown="if(event.key==='Enter')sendText()">
+    <button class="send" onclick="sendText()">➤</button>
+  </footer>
+</div>
+<script>
+const CLINIC = "32 карата";
+const PHONE = "+73472461329";
+const ADDRESS = "";
+const PRICES = ["Консультация — 0 ₽", "Чистка зубов — от 3 500 ₽", "Лечение кариеса — от 4 500 ₽", "Имплант под ключ — от 35 000 ₽", "Брекеты — от 60 000 ₽"];
+const chat = document.getElementById('chat');
+const state = {step:0, name:'', service:'', time:''};
+
+function add(text, who='in', buttons=null){
+  const d = document.createElement('div');
+  d.className = 'msg ' + who;
+  d.textContent = text;
+  chat.appendChild(d);
+  if(buttons){
+    const wrap = document.createElement('div');
+    wrap.className = 'btns';
+    buttons.forEach(b=>{
+      const btn = document.createElement('button');
+      btn.textContent = b.label;
+      btn.onclick = ()=>{ add(b.label,'out'); b.action(); };
+      wrap.appendChild(btn);
+    });
+    chat.appendChild(wrap);
+  }
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function mainMenu(){
+  add('Здравствуйте! Я бот клиники «'+CLINIC+'».\nЗапишу на приём за минуту — без звонков.', 'in', [
+    {label:'🦷 Записаться', action:()=>askName()},
+    {label:'💰 Цены', action:()=>{ add(PRICES.join('\n'),'in'); mainMenu(); }},
+    {label:'📍 Адрес и телефон', action:()=>{ add(ADDRESS+'\n'+PHONE,'in'); mainMenu(); }},
+    {label:'❓ Частые вопросы', action:()=>faq()}
+  ]);
+}
+
+function askName(){
+  state.step = 1;
+  add('Как вас зовут?', 'in');
+}
+
+function askService(){
+  state.step = 2;
+  add('Спасибо, '+state.name+'. На что планируете прийти?', 'in',
+    ['Консультация','Чистка','Лечение кариеса','Имплант','Брекеты'].map(s=>({
+      label:s, action:()=>{ state.service=s; askTime(); }
+    })));
+}
+
+function askTime(){
+  state.step = 3;
+  add('Когда удобно?', 'in', ['Сегодня после 18:00','Завтра утром','Завтра после 15:00','В выходные','Другое время'].map(t=>({
+    label:t, action:()=>{ state.time=t; confirmBooking(); }
+  })));
+}
+
+function confirmBooking(){
+  state.step = 4;
+  add('Записал:\n👤 '+state.name+'\n🦷 '+state.service+'\n🕒 '+state.time+'\n\nАдминистратор подтвердит в течение 15 минут и напишет сюда.', 'in',
+    [{label:'✅ Всё верно', action:()=>{ add('Отлично! До встречи 🙂','in'); setTimeout(mainMenu,600); }},
+     {label:'✏️ Изменить', action:()=>{ add('Хорошо, начнём заново.','in'); mainMenu(); }}]);
+}
+
+function faq(){
+  add('Частые вопросы:', 'in', [
+    {label:'Больно ли лечить?', action:()=>{ add('Все процедуры под анестезией. Врач подбирает её индивидуально — дискомфорта вы не почувствуете.','in'); faq(); }},
+    {label:'Есть ли рассрочка?', action:()=>{ add('Да, на лечение свыше 30 000 ₽ — рассрочка на 6 месяцев без переплаты.','in'); faq(); }},
+    {label:'Сколько стоит имплант?', action:()=>{ add('От 35 000 ₽ под ключ, включая слепки и установку. Точная цена — после осмотра.','in'); faq(); }},
+    {label:'Можно ли в выходные?', action:()=>{ add('Да, суббота с 9:00 до 15:00. Воскресенье — по записи.','in'); faq(); }},
+    {label:'← Назад', action:()=>mainMenu()}
+  ]);
+}
+
+function sendText(){
+  const inp = document.getElementById('txt');
+  const v = inp.value.trim();
+  if(!v) return;
+  add(v,'out'); inp.value='';
+  if(state.step===1){ state.name=v; askService(); }
+  else if(state.step===4){ add('Спасибо! Передал администратору, он свяжется с вами.','in'); }
+  else add('Понял вас. Выберите, пожалуйста, вариант ниже 👇','in', [{label:'Главное меню', action:mainMenu}]);
+}
+
+mainMenu();
+</script>
+</body>
+</html>

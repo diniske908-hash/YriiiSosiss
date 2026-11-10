@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 240" width="900" height="240" role="img" aria-label="Зиныч IT">
+  <defs>
+    <linearGradient id="zg2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2F6BFF"/>
+      <stop offset="1" stop-color="#1AC2B6"/>
+    </linearGradient>
+  </defs>
+  <rect x="20" y="30" width="180" height="180" rx="42" fill="url(#zg2)"/>
+  <text x="110" y="168" text-anchor="middle"
+        font-family="Segoe UI, Inter, Arial, sans-serif" font-weight="800"
+        font-size="128" fill="#ffffff">З</text>
+  <circle cx="158" cy="168" r="10" fill="#ffffff" opacity="0.92"/>
+
+  <text x="230" y="122" font-family="Segoe UI, Inter, Arial, sans-serif"
+        font-weight="800" font-size="62" fill="#111a24" letter-spacing="1">ЗИНЫЧ</text>
+  <text x="232" y="176" font-family="Segoe UI, Inter, Arial, sans-serif"
+        font-weight="600" font-size="34" fill="#2F6BFF" letter-spacing="6">IT · УФА</text>
+</svg>
